@@ -1,0 +1,18 @@
+{
+  "name": "multipost-studio",
+  "private": true,
+  "packageManager": "pnpm@9.12.3",
+  "scripts": {
+    "dev": "pnpm --filter @multipost/web dev",
+    "dev:all": "pnpm --parallel --filter @multipost/web --filter @multipost/worker dev",
+    "worker": "pnpm --filter @multipost/worker dev",
+    "build": "pnpm --filter @multipost/web build && pnpm --filter @multipost/worker build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @multipost/db prisma generate",
+    "db:migrate": "pnpm --filter @multipost/db prisma migrate dev",
+    "db:push": "pnpm --filter @multipost/db prisma db push",
+    "db:studio": "pnpm --filter @multipost/db prisma studio"
+  }
+}
+

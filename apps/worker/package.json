@@ -1,0 +1,26 @@
+{
+  "name": "@multipost/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@multipost/connectors": "workspace:*",
+    "@multipost/core": "workspace:*",
+    "@multipost/db": "workspace:*",
+    "@multipost/renderers": "workspace:*",
+    "bullmq": "^5.12.9",
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}
+

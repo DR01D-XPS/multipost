@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Multi-channel Post Studio">
+  <rect width="256" height="256" fill="#000" />
+  <circle cx="128" cy="128" r="120" fill="#f4f4f4" />
+
+  <path
+    d="M52 128c0-27 11-50 31-68"
+    fill="none"
+    stroke="#000"
+    stroke-width="16"
+    stroke-linecap="round"
+  />
+  <path
+    d="M205 128c0 27-11 50-31 68"
+    fill="none"
+    stroke="#000"
+    stroke-width="16"
+    stroke-linecap="round"
+  />
+  <path d="M75 52l20 7-15 14z" fill="#000" />
+  <path d="M181 204l-20-7 15-14z" fill="#000" />
+
+  <path
+    d="M67 153c0-18 14-32 32-32h58c18 0 32 14 32 32v19c0 18-14 32-32 32h-38l-16 17c-3 3-8 1-8-4v-13h-8c-11 0-20-9-20-20z"
+    fill="#000"
+  />
+
+  <g transform="translate(102 64) rotate(-6)">
+    <rect x="-22" y="-10" width="34" height="70" rx="4" fill="#000" />
+    <line x1="-13" y1="8" x2="2" y2="8" stroke="#f4f4f4" stroke-width="5" stroke-linecap="round" />
+    <line x1="-13" y1="22" x2="2" y2="22" stroke="#f4f4f4" stroke-width="5" stroke-linecap="round" />
+    <line x1="-13" y1="36" x2="2" y2="36" stroke="#f4f4f4" stroke-width="5" stroke-linecap="round" />
+  </g>
+
+  <g transform="translate(147 62) rotate(7)">
+    <rect x="-20" y="-10" width="52" height="82" rx="6" fill="#000" />
+    <line x1="-8" y1="8" x2="20" y2="8" stroke="#f4f4f4" stroke-width="6" stroke-linecap="round" />
+    <line x1="-8" y1="25" x2="20" y2="25" stroke="#f4f4f4" stroke-width="6" stroke-linecap="round" />
+    <line x1="-8" y1="42" x2="20" y2="42" stroke="#f4f4f4" stroke-width="6" stroke-linecap="round" />
+    <line x1="-8" y1="59" x2="8" y2="59" stroke="#f4f4f4" stroke-width="6" stroke-linecap="round" />
+  </g>
+</svg>

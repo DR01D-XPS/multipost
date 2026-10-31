@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ChannelType {
+  VK_GROUP
+  TELEGRAM_CHANNEL
+  MAX_CHAT
+}
+
+enum MediaKind {
+  image
+  video
+  audio
+  file
+}
+
+enum PublishMode {
+  DISABLED
+  NOW
+  SCHEDULED
+}
+
+enum PublishStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Channel {
+  id             String          @id @default(cuid())
+  type           ChannelType
+  name           String
+  config         String          @db.Text
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  publishTargets PublishTarget[]
+
+  @@index([type])
+}
+
+model TelegramEmojiPack {
+  id         String          @id @default(cuid())
+  setName    String          @unique
+  title      String
+  sourceUrl  String
+  stickerType String
+  importedAt DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  emojis     TelegramEmoji[]
+
+  @@index([updatedAt])
+}
+
+model TelegramEmoji {
+  id                   String            @id @default(cuid())
+  packId               String
+  customEmojiId        String            @unique
+  emoji                String
+  telegramFileId       String
+  telegramFileUniqueId String
+  previewPath          String?
+  previewMimeType      String?
+  width                Int?
+  height               Int?
+  isAnimated           Boolean           @default(false)
+  isVideo              Boolean           @default(false)
+  needsRepainting      Boolean           @default(false)
+  sortOrder            Int               @default(0)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  pack                 TelegramEmojiPack @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId, sortOrder])
+}
+
+model Post {
+  id             String          @id @default(cuid())
+  title          String
+  content        Json
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  mediaAssets    MediaAsset[]
+  publishTargets PublishTarget[]
+
+  @@index([updatedAt])
+}
+
+model MediaAsset {
+  id           String    @id @default(cuid())
+  postId       String
+  kind         MediaKind
+  localPath    String
+  mimeType     String
+  size         Int
+  sortOrder    Int       @default(0)
+  width        Int?
+  height       Int?
+  originalName String?
+  createdAt    DateTime  @default(now())
+  post         Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([postId, sortOrder])
+}
+
+model PublishTarget {
+  id           String          @id @default(cuid())
+  postId       String
+  channelId    String
+  mode         PublishMode     @default(DISABLED)
+  scheduledAt  DateTime?
+  status       PublishStatus   @default(DRAFT)
+  lastError    String?         @db.Text
+  externalIds  Json?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  channel      Channel         @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  post         Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  logs         PublishJobLog[]
+
+  @@unique([postId, channelId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model PublishJobLog {
+  id              String        @id @default(cuid())
+  publishTargetId String
+  runAt           DateTime      @default(now())
+  status          PublishStatus
+  requestPayload  Json?
+  responsePayload Json?
+  errorStack      String?       @db.Text
+  publishTarget   PublishTarget @relation(fields: [publishTargetId], references: [id], onDelete: Cascade)
+
+  @@index([publishTargetId, runAt(sort: Desc)])
+}

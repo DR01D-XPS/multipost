@@ -1,0 +1,116 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: multipost
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    working_dir: /app
+    command: >
+      sh -c "corepack enable &&
+      rm -f /app/.docker-deps-ready &&
+      if [ ! -x /app/packages/db/node_modules/.bin/prisma ]; then pnpm install; fi &&
+      touch /app/.docker-deps-ready &&
+      pnpm db:generate &&
+      pnpm db:push &&
+      pnpm --filter @multipost/web dev --hostname 0.0.0.0"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/multipost
+      REDIS_URL: redis://redis:6379
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      AUTH_ADMIN_USERNAME: ${AUTH_ADMIN_USERNAME:-admin}
+      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:-change-me}
+      AUTH_COOKIE_SECRET: ${AUTH_COOKIE_SECRET:-replace-with-a-long-random-string}
+      CHANNEL_CONFIG_SECRET: ${CHANNEL_CONFIG_SECRET:-replace-with-a-different-long-random-string}
+      STORAGE_ROOT: ${STORAGE_ROOT:-.data/uploads}
+      TELEGRAM_DEFAULT_PARSE_MODE: ${TELEGRAM_DEFAULT_PARSE_MODE:-HTML}
+      MAX_DEFAULT_FORMAT: ${MAX_DEFAULT_FORMAT:-markdown}
+      VK_API_VERSION: ${VK_API_VERSION:-5.199}
+      VK_PUBLISH_TRANSPORT: ${VK_PUBLISH_TRANSPORT:-AUTO}
+      VK_GLOBAL_ACCESS_TOKEN: ${VK_GLOBAL_ACCESS_TOKEN:-}
+      VK_ID_CLIENT_ID: ${VK_ID_CLIENT_ID:-}
+      VK_ID_REDIRECT_URI: ${VK_ID_REDIRECT_URI:-}
+      VK_ID_SCOPE: ${VK_ID_SCOPE:-groups email phone}
+      VK_PLAYWRIGHT_LOGIN: ${VK_PLAYWRIGHT_LOGIN:-}
+      VK_PLAYWRIGHT_PASSWORD: ${VK_PLAYWRIGHT_PASSWORD:-}
+      VK_PLAYWRIGHT_STORAGE_STATE_PATH: ${VK_PLAYWRIGHT_STORAGE_STATE_PATH:-.data/vk-playwright-storage-state.json}
+      VK_PLAYWRIGHT_HEADLESS: ${VK_PLAYWRIGHT_HEADLESS:-true}
+      VK_PLAYWRIGHT_USER_AGENT: ${VK_PLAYWRIGHT_USER_AGENT:-}
+      PLAYWRIGHT_BROWSERS_PATH: ${PLAYWRIGHT_BROWSERS_PATH:-/app/.data/ms-playwright}
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - workspace-node-modules:/app/node_modules
+    depends_on:
+      - postgres
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    working_dir: /app
+    command: >
+      sh -c "corepack enable &&
+      while [ ! -f /app/.docker-deps-ready ] || [ ! -x /app/packages/db/node_modules/.bin/prisma ]; do sleep 2; done &&
+      pnpm db:generate &&
+      pnpm --filter @multipost/worker dev"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/multipost
+      REDIS_URL: redis://redis:6379
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      AUTH_ADMIN_USERNAME: ${AUTH_ADMIN_USERNAME:-admin}
+      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:-change-me}
+      AUTH_COOKIE_SECRET: ${AUTH_COOKIE_SECRET:-replace-with-a-long-random-string}
+      CHANNEL_CONFIG_SECRET: ${CHANNEL_CONFIG_SECRET:-replace-with-a-different-long-random-string}
+      STORAGE_ROOT: ${STORAGE_ROOT:-.data/uploads}
+      TELEGRAM_DEFAULT_PARSE_MODE: ${TELEGRAM_DEFAULT_PARSE_MODE:-HTML}
+      MAX_DEFAULT_FORMAT: ${MAX_DEFAULT_FORMAT:-markdown}
+      VK_API_VERSION: ${VK_API_VERSION:-5.199}
+      VK_PUBLISH_TRANSPORT: ${VK_PUBLISH_TRANSPORT:-AUTO}
+      VK_GLOBAL_ACCESS_TOKEN: ${VK_GLOBAL_ACCESS_TOKEN:-}
+      VK_ID_CLIENT_ID: ${VK_ID_CLIENT_ID:-}
+      VK_ID_REDIRECT_URI: ${VK_ID_REDIRECT_URI:-}
+      VK_ID_SCOPE: ${VK_ID_SCOPE:-groups email phone}
+      VK_PLAYWRIGHT_LOGIN: ${VK_PLAYWRIGHT_LOGIN:-}
+      VK_PLAYWRIGHT_PASSWORD: ${VK_PLAYWRIGHT_PASSWORD:-}
+      VK_PLAYWRIGHT_STORAGE_STATE_PATH: ${VK_PLAYWRIGHT_STORAGE_STATE_PATH:-.data/vk-playwright-storage-state.json}
+      VK_PLAYWRIGHT_HEADLESS: ${VK_PLAYWRIGHT_HEADLESS:-true}
+      VK_PLAYWRIGHT_USER_AGENT: ${VK_PLAYWRIGHT_USER_AGENT:-}
+      PLAYWRIGHT_BROWSERS_PATH: ${PLAYWRIGHT_BROWSERS_PATH:-/app/.data/ms-playwright}
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - .:/app
+      - workspace-node-modules:/app/node_modules
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres-data:
+  redis-data:
+  workspace-node-modules:
